@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fake News Detector</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #f4f5f7; color: #1d1d1f; margin: 0; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+  h1 { margin: 0 0 4px; }
+  .sub { color: #666; margin: 0 0 20px; }
+  textarea { width: 100%; box-sizing: border-box; height: 170px; padding: 12px; font-size: 15px;
+             border: 1px solid #ccc; border-radius: 10px; resize: vertical; }
+  button { margin-top: 10px; padding: 11px 26px; font-size: 15px; border: 0; border-radius: 8px;
+           background: #1d4ed8; color: #fff; cursor: pointer; }
+  .error { margin-top: 14px; padding: 12px; background: #fdecea; color: #a12622; border-radius: 8px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+  @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .model { font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: .04em; }
+  .verdict { font-size: 30px; font-weight: 700; margin: 6px 0; }
+  .FAKE { color: #c62828; } .REAL { color: #2e7d32; }
+  .bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+  .fill { height: 100%; }
+  .fill.FAKE { background: #c62828; } .fill.REAL { background: #2e7d32; }
+  .words { margin-top: 12px; font-size: 14px; }
+  .chip { display: inline-block; padding: 3px 9px; margin: 3px 3px 0 0; border-radius: 12px; font-size: 13px; }
+  .chip.f { background: #fdecea; color: #a12622; } .chip.r { background: #e8f5e9; color: #1b5e20; }
+  .note { margin-top: 22px; font-size: 13px; color: #555; background: #fff8e1; padding: 12px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Fake News Detector</h1>
+  <p class="sub">TF-IDF + Logistic Regression vs fine-tuned DistilBERT · trained on WELFake</p>
+
+  <form method="post">
+    <textarea name="text" placeholder="Paste a news headline or article...">{{ text }}</textarea>
+    <button type="submit">Check</button>
+  </form>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  {% if result %}
+  <div class="cards">
+    {% set c = result.classical %}
+    <div class="card">
+      <div class="model">Classical · Logistic Regression</div>
+      <div class="verdict {{ c.label }}">{{ c.label }}</div>
+      <div class="bar"><div class="fill {{ c.label }}" style="width: {{ c.confidence }}%"></div></div>
+      <div>{{ c.confidence }}% confident</div>
+      <div class="words">
+        {% if c.fake_words %}<div>Pushed toward fake:
+          {% for w in c.fake_words %}<span class="chip f">{{ w }}</span>{% endfor %}</div>{% endif %}
+        {% if c.real_words %}<div style="margin-top:6px">Pushed toward real:
+          {% for w in c.real_words %}<span class="chip r">{{ w }}</span>{% endfor %}</div>{% endif %}
+      </div>
+    </div>
+
+    {% set b = result.bert %}
+    <div class="card">
+      <div class="model">Transformer · DistilBERT</div>
+      <div class="verdict {{ b.label }}">{{ b.label }}</div>
+      <div class="bar"><div class="fill {{ b.label }}" style="width: {{ b.confidence }}%"></div></div>
+      <div>{{ b.confidence }}% confident</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="note">
+    <b>Limitation:</b> these models judge writing style, not facts. They score 96–99% on WELFake
+    but about 50% on short political claims (LIAR). A true statement written casually can be flagged as fake.
+  </div>
+</div>
+</body>
+</html>

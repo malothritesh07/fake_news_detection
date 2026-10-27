@@ -1,0 +1,5 @@
+model,accuracy,f1,train_sec
+Linear SVM,0.9619,0.9575,3.9
+Logistic Regression,0.9589,0.9541,2.7
+Random Forest,0.9209,0.9093,57.9
+Multinomial NB,0.8828,0.8724,0.2
